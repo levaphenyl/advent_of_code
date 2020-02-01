@@ -47,7 +47,7 @@ unsigned file_parse_sum(char const* path, unsigned func(unsigned))
         } else {
                 fprintf(stderr, "Could not open %s: ", path);
                 perror(0);
-                errno = 1;
+                errno = 0;
         }
         return acc;
 }
