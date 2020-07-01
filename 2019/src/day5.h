@@ -57,8 +57,7 @@ ENDCNT:
  *
  * @return 1 in case of success to read the file, zero otherwise.
 **/
-unsigned opcode_rx(FILE* instream, size_t const len, int buffer[static len],
-                   char const sep)
+int opcode_rx(FILE* instream, size_t const len, int buffer[static len], char const sep)
 {
         int ret = 0;
         int scres;
@@ -156,8 +155,7 @@ int opcode_exec(size_t const len, int opcodes[static len])
                         case 3: dest_idx = opcodes[i+1];
                                 printf("Input required at operation %d:\n", ret);
                                 if (scanf("%d", &opcodes[dest_idx]) != 1) {
-                                        fputs("Invalid input, aborting!\n",
-                                              stderr);
+                                        fputs("Invalid input, aborting!\n", stderr);
                                         i = len;
                                 }
                                 ++ret;
@@ -229,8 +227,7 @@ int opcode_exec2(size_t const len, int opcodes[static len])
                         case 3: dest_idx = opcodes[i+1];
                                 printf("Input required at operation %d:\n", ret);
                                 if (scanf("%d", &opcodes[dest_idx]) != 1) {
-                                        fputs("Invalid input, aborting!\n",
-                                              stderr);
+                                        fputs("Invalid input, aborting!\n", stderr);
                                         i = len;
                                 }
                                 i += 2;
