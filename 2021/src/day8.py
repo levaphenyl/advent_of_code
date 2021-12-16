@@ -32,8 +32,8 @@ def digit_diff(segments1, segments2):
 def print_digit_diff():
     for k1, v1 in SEGMAP.items():
         for k2, v2 in SEGMAP.items():
-            if len(v1) > len(v2):
-                t = digit_diff(v1, v2)
+            t = digit_diff(v1, v2)
+            if len(t) < 2 and len(t) > 0:
                 print("{}-{}: {}".format(k1, k2, t))
 
 
@@ -48,32 +48,66 @@ def replace_unique_values(values):
     return replaced
 
 
+def reverse_search(map, val):
+    for k, v in map.items():
+        if v == val:
+            return k
+
+    return None
+
+
 def decode(patterns, values):
-    # Digits with unique number of segments: 1, 4, 7, 8.
-    # Segment difference 7 - 1 = a
-    # Segment difference 9 - 3 = b
-    # Segment difference 8 - 6 = c
-    # Segment difference 8 - 0 = d
-    # Segment difference 8 - 9 = e
-    # Knowing c and 1 => f
-    # Knowing all others => g
     ret = []
+    segcount = count_segments()
     for i in range(len(values)):
         pattern = patterns[i]
         value = values[i]
         decode_map = {}
-        for p in patterns:
-            if len(p) == 2:
-                one = p
-            elif len(p) == 3:
-                seven = p
-            elif len(p) == 4:
-                four = p
-            elif len(p) == 7:
-                eight = p
+        while len(decode_map) < 10:
+            for p in pattern:
+                p = ''.join(sorted(p))
+                if p not in decode_map:
+                    possible = segcount[len(p)]
+                    # Digits with unique number of segments: 1, 4, 7, 8.
+                    if len(possible) == 1:
+                        decode_map[p] = possible[0]
 
-    print(count_segments())
-    print_digit_diff()
+                    one = reverse_search(decode_map, 1)
+                    four = reverse_search(decode_map, 4)
+                    if len(p) == 6 and one is not None and four is not None:
+                        # 9 contains the segments of 4.
+                        if all([ s in p for s in four ]):
+                            decode_map[p] = 9
+                        # 0 contains the segments of 1 but not of 4.
+                        elif all([ s in p for s in one ]):
+                            decode_map[p] = 0
+                        # 6 is the only left with 6 segments.
+                        else:
+                            decode_map[p] = 6
+
+                    seven = reverse_search(decode_map, 7)
+                    if 3 in possible and seven is not None:
+                        # 3 contains the segments of 7.
+                        if all([ s in p for s in seven ]):
+                            decode_map[p] = 3
+                            continue
+
+                    three = reverse_search(decode_map, 3)
+                    nine = reverse_search(decode_map, 9)
+                    if len(p) == 5 and three is not None and nine is not None:
+                        # Segment difference 9 - 3 --> b,
+                        bee = digit_diff(nine, three)
+                        # 5 is the only one with 5 segments containing b.
+                        if bee in p:
+                            decode_map[p] = 5
+                        # 2 is the remaining one.
+                        else:
+                            decode_map[p] = 2
+
+        decoded = [ str(decode_map[''.join(sorted(v))]) for v in value ]
+        ret.append(int(''.join(decoded)))
+
+    return ret
 
 
 def count_digits(values):
@@ -89,13 +123,14 @@ def load_data(path):
     return [ r[0].split() for r in input ], [ r[1].split() for r in input ]
 
 
-def print_results(values, part):
+def print_results(values, part, patterns=[]):
     if part == 1:
         replaced = replace_unique_values(values)
+        ret = count_digits(replaced)
     elif part == 2:
-        pass
+        decoded = decode(patterns, values)
+        ret = sum(decoded)
 
-    ret = count_digits(replaced)
     print("Answer for part {}: {}.".format(part, ret))
 
 
@@ -126,9 +161,10 @@ if __name__ == "__main__":
     ]
     test_res2 = [ 8394, 9781, 1197, 9361, 4873, 8418, 4548, 1625, 8717, 4315, ]
     assert count_digits(replace_unique_values(test_values)) == 26
-    decode(test_patterns, test_values)
+    assert decode(test_patterns, test_values) == test_res2
 
     input_path = "data/input-day8.txt"
     input_patn, input_vals = load_data(input_path)
     print_results(input_vals, 1)
+    print_results(input_vals, 2, input_patn)
 
